@@ -1,0 +1,41 @@
+Key improvements:
+Better synchronization: Uses waitingRoom channel to store customer IDs, ensuring proper order
+Race condition fix: Eliminates the race between multiple customers signaling the barber
+Clearer state management: Uses mutex to track barber's busy state
+Proper cleanup: Closes channels and waits for all goroutines to finish
+Better logging: Shows number of occupied chairs and customer-specific messages
+How it works:
+Customers try to enter the waitingRoom channel (buffered with chair capacity)
+Barber reads from waitingRoom to get the next customer
+One-to-one relationship: Each customer gets exactly one haircut completion signal
+Automatic queuing: Channel buffering handles the waiting queue naturally
+This implementation correctly handles the classic Sleeping Barber problem constraints from Silberschatz and Galvin's Operating System Concepts book.
+
+Semaphore:
+Mutex protection: All shared state access is protected by sync.Mutex
+Condition variables: sync.Cond for coordinating between barber and customers
+Waiting room as slice: Protected slice instead of channels for customer queue
+Explicit state management: Boolean flags for barber sleeping/busy states
+WaitGroup synchronization: Proper cleanup of all goroutines
+Broadcast signals: Wake multiple waiting entities when state changes
+Synchronization patterns:
+Barber sleeps on barberWake.Wait() when no customers
+Customer wakes barber with barberWake.Signal()
+Customers wait on customerWait.Wait() for their turn
+Barber signals completion with customerWait.Broadcast()
+
+
+
+Key Java concepts used:
+BlockingQueue: ArrayBlockingQueue handles the waiting room with automatic blocking/non-blocking operations
+ExecutorService: Manages thread pool for barber and customers
+CountDownLatch: Coordinates shutdown between main thread and barber
+Volatile: Ensures isOpen flag visibility across threads
+TimeUnit: Provides readable time-based operations
+
+
+Main differences from Go version:
+No explicit channels: Uses BlockingQueue instead
+Thread pool management: ExecutorService handles goroutine equivalent
+Exception handling: Java requires explicit InterruptedException handling
+Synchronization: Uses volatile and CountDownLatch for coordination
