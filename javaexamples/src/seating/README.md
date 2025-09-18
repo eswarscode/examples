@@ -98,3 +98,58 @@ The demo will:
 2. Submit 15 tasks to demonstrate pool expansion and queue usage
 3. Show task rejection when pool and queue are full
 4. Demonstrate graceful shutdown
+
+## Uber Seating Problem
+
+A Java implementation of the classic Uber Seating concurrency problem.
+
+### Problem Description
+
+An Uber ride can seat exactly 4 passengers with the following constraints:
+- Either 4 Democrats
+- Either 4 Republicans
+- Or 2 Democrats and 2 Republicans
+
+Passengers arrive concurrently and must wait until a valid seating arrangement is possible.
+
+### Solution Overview
+
+The solution uses Java concurrency primitives:
+
+- **Semaphores**: Block passengers until valid groups form
+- **ReentrantLock**: Protects shared counters
+- **CyclicBarrier**: Ensures all 4 passengers are seated before ride starts
+- **Ride Leader Pattern**: One passenger coordinates the group and starts the ride
+
+### Algorithm
+
+1. Passenger arrives and increments their party counter
+2. Check if they complete a valid group:
+   - 4 of same party: Release 3 waiting passengers of same party
+   - 2+2 mixed: Release 1 from same party + 2 from other party
+3. If no valid group, wait on party semaphore
+4. All passengers wait at barrier until 4 are seated
+5. Ride leader starts the drive
+
+### Running the Code
+
+```bash
+# Compile
+javac src/Seating.java
+
+# Run
+java -cp src Demonstration
+```
+
+### Expected Output
+
+```
+Democrat_1 seated
+Republican_1 seated
+Republican_2 seated
+Democrat_2 seated
+Uber Ride on Its wayyyy... with ride leader Thread-1
+...
+```
+
+The test creates 10 Democrat and 14 Republican threads, demonstrating various valid seating combinations.
