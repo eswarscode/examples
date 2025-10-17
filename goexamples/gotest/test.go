@@ -26,11 +26,12 @@ func main() {
 	go func() {
 		ip = process(getUsers())
 	}()
-	time.Sleep(time.Second * 30)
+	time.Sleep(time.Second * 10)
 
 	go read(ip)
 	time.Sleep(time.Second * 30)
-	select {}
+	fmt.Println("end")
+	//select {}
 
 }
 
@@ -65,14 +66,39 @@ func getValue(name string) *user.User {
 func process(users []*user.User) <-chan *user.User {
 	results := make(chan *user.User, 5)
 	fmt.Println("================read ", results)
-
+	//=====1st issue
+	// var e user.User = user.User{}
+	// for _, u := range users {
+	// 	e = *(u)
+	// 	fmt.Println("rest ", *u)
+	// 	results <- &e
+	// }
+	//=====2nd issue
+	// var e user.User = user.User{}
+	// for _, u := range users {
+	// 	e = user.User{}
+	// 	e = *(u)
+	// 	fmt.Println("rest ", *u)
+	// 	results <- &e
+	// }
+	//=====corrected
+	// 	//another way is for _, u := range users {
+	//     e := *u // Create a NEW struct variable `e` on every iteration
+	//     results <- &e // Send a pointer to this new, unique struct
+	// }
+	var e *user.User = &user.User{}
 	for _, u := range users {
-		results <- u
+		e = &user.User{}
+		*e = *u
+		fmt.Println("rest ", *u)
+		results <- e
 	}
+	close(results)
 	return results
 }
 
 func read(data <-chan *user.User) {
+	time.Sleep(10 * time.Second)
 	fmt.Println("================read ", data)
 	for user := range data {
 		fmt.Println("resd ", *user)
